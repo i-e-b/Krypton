@@ -73,9 +73,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlendTechnique.cs" />
+    <Compile Include="BlurTechnique.cs" />
     <Compile Include="Common\BoundingRect.cs" />
     <Compile Include="KryptonEngine.cs" />
+    <Compile Include="Lights\LightMapSize.cs" />
     <Compile Include="Lights\ILight2D.cs" />
+    <Compile Include="Lights\ShadowType.cs" />
     <Compile Include="LightTextureBuilder.cs" />
     <Compile Include="Lights\Light2D.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -83,6 +87,7 @@
     <Compile Include="ShadowHull.cs" />
     <Compile Include="ShadowHullPoint.cs" />
     <Compile Include="ShadowHullVertex.cs" />
+    <Compile Include="Unit.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

@@ -6,12 +6,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Krypton {
-	public enum LightMapSize {
-		Full = 1,
-		Fourth = 2,
-		Eighth = 4,
-	}
-
 	/// <summary>
 	/// A GPU-based 2D lighting engine
 	/// </summary>
@@ -29,10 +23,10 @@ namespace Krypton {
 		Effect effect;
 
 		// Blur
-		Color mAmbientColor = new Color(0, 0, 0);
-		float mBluriness;
-		LightMapSize mLightMapSize = LightMapSize.Full;
-		RenderTarget2D mMap;
+		Color ambientColor = new Color(0, 0, 0);
+		float bluriness;
+		LightMapSize lightMapSize = LightMapSize.Full;
+		RenderTarget2D map;
 		RenderTarget2D mapBlur;
 		bool spriteBatchCompatabilityEnabled;
 		Matrix wvp = Matrix.Identity;
@@ -42,8 +36,7 @@ namespace Krypton {
 		/// </summary>
 		/// <param name="game">Your game object</param>
 		/// <param name="effectAssetName">The asset name of Krypton's effect file, which must be included in your content project</param>
-		public KryptonEngine(Game game, string effectAssetName)
-			: base(game) {
+		public KryptonEngine(Game game, string effectAssetName) : base(game) {
 			this.effectAssetName = effectAssetName;
 		}
 
@@ -80,31 +73,34 @@ namespace Krypton {
 		public Matrix Matrix {
 			get { return wvp; }
 			set {
-				if (wvp != value) {
-					wvp = value;
+				if (wvp == value) return;
+				wvp = value;
 
-					// This is totally ghetto, but it works for now. :)
-					// Compute the world-space bounds of the given matrix
-					Matrix inverse = Matrix.Invert(value);
-
-					Vector2 v1 = Vector2.Transform(new Vector2(1, 1), inverse);
-					Vector2 v2 = Vector2.Transform(new Vector2(1, -1), inverse);
-					Vector2 v3 = Vector2.Transform(new Vector2(-1, -1), inverse);
-					Vector2 v4 = Vector2.Transform(new Vector2(-1, 1), inverse);
-
-					bounds.Min = v1;
-					bounds.Min = Vector2.Min(bounds.Min, v2);
-					bounds.Min = Vector2.Min(bounds.Min, v3);
-					bounds.Min = Vector2.Min(bounds.Min, v4);
-
-					bounds.Max = v1;
-					bounds.Max = Vector2.Max(bounds.Max, v2);
-					bounds.Max = Vector2.Max(bounds.Max, v3);
-					bounds.Max = Vector2.Max(bounds.Max, v4);
-
-					bounds = BoundingRect.MinMax;
-				}
+				// This is totally ghetto, but it works for now. :)
+				// Compute the world-space bounds of the given matrix
+				UpdateWorldSpace(value);
 			}
+		}
+
+		void UpdateWorldSpace(Matrix value) {
+			Matrix inverse = Matrix.Invert(value);
+
+			Vector2 v1 = Vector2.Transform(new Vector2(1, 1), inverse);
+			Vector2 v2 = Vector2.Transform(new Vector2(1, -1), inverse);
+			Vector2 v3 = Vector2.Transform(new Vector2(-1, -1), inverse);
+			Vector2 v4 = Vector2.Transform(new Vector2(-1, 1), inverse);
+
+			bounds.Min = v1;
+			bounds.Min = Vector2.Min(bounds.Min, v2);
+			bounds.Min = Vector2.Min(bounds.Min, v3);
+			bounds.Min = Vector2.Min(bounds.Min, v4);
+
+			bounds.Max = v1;
+			bounds.Max = Vector2.Max(bounds.Max, v2);
+			bounds.Max = Vector2.Max(bounds.Max, v3);
+			bounds.Max = Vector2.Max(bounds.Max, v4);
+
+			bounds = BoundingRect.MinMax;
 		}
 
 		/// <summary>
@@ -119,21 +115,20 @@ namespace Krypton {
 		/// Ambient color of the light map. Lights + AmbientColor = Final 
 		/// </summary>
 		public Color AmbientColor {
-			get { return mAmbientColor; }
-			set { mAmbientColor = value; }
+			get { return ambientColor; }
+			set { ambientColor = value; }
 		}
 
 		/// <summary>
 		/// Gets or sets the value used to determine light map size
 		/// </summary>
 		public LightMapSize LightMapSize {
-			get { return mLightMapSize; }
+			get { return lightMapSize; }
 			set {
-				if (mLightMapSize != value) {
-					mLightMapSize = value;
-					DisposeRenderTargets();
-					CreateRenderTargets();
-				}
+				if (lightMapSize == value) return;
+				lightMapSize = value;
+				DisposeRenderTargets();
+				CreateRenderTargets();
 			}
 		}
 
@@ -141,8 +136,8 @@ namespace Krypton {
 		/// Gets or sets a value indicating how much to blur the final light map. If the value is zero, the lightmap will not be blurred
 		/// </summary>
 		public float Bluriness {
-			get { return mBluriness; }
-			set { mBluriness = Math.Max(0, value); }
+			get { return bluriness; }
+			set { bluriness = Math.Max(0, value); }
 		}
 
 		/// <summary>
@@ -185,10 +180,10 @@ namespace Krypton {
 		/// Creates render targets
 		/// </summary>
 		void CreateRenderTargets() {
-			int targetWidth = GraphicsDevice.Viewport.Width/(int) (mLightMapSize);
-			int targetHeight = GraphicsDevice.Viewport.Height/(int) (mLightMapSize);
+			int targetWidth = GraphicsDevice.Viewport.Width/(int) (lightMapSize);
+			int targetHeight = GraphicsDevice.Viewport.Height/(int) (lightMapSize);
 
-			mMap = new RenderTarget2D(GraphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
+			map = new RenderTarget2D(GraphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
 			mapBlur = new RenderTarget2D(GraphicsDevice, targetWidth, targetHeight, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PlatformContents);
 		}
 
@@ -196,7 +191,7 @@ namespace Krypton {
 		/// Disposes of render targets
 		/// </summary>
 		void DisposeRenderTargets() {
-			TryDispose(mMap);
+			TryDispose(map);
 			TryDispose(mapBlur);
 		}
 
@@ -230,36 +225,35 @@ namespace Krypton {
 			RenderTargetBinding[] originalRenderTargets = GraphicsDevice.GetRenderTargets();
 
 			// Set and clear the target
-			GraphicsDevice.SetRenderTarget(mMap);
-			GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.Stencil, mAmbientColor, 0, 1);
+			GraphicsDevice.SetRenderTarget(map);
+			GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.Stencil, ambientColor, 0, 1);
 
 			// Make sure we're culling the right way!
 			GraphicsDevice.RasterizerState = RasterizerStateGetFromCullMode(cullMode);
 
 			// put the render target's size into a more friendly format
-			var targetSize = new Vector2(mMap.Width, mMap.Height);
+			var targetSize = new Vector2(map.Width, map.Height);
 
 			// Render Light Maps
-			foreach (ILight2D light in rights) {
+			foreach (var light in rights) {
 				// Loop through each light within the view frustum
-				if (light.Bounds.Intersects(bounds)) {
-					// Clear the stencil and set the scissor rect (because we're stretching geometry past the light's reach)
-					GraphicsDevice.Clear(ClearOptions.Stencil, Color.Black, 0, 0);
-					GraphicsDevice.ScissorRectangle = ScissorRectCreateForLight(light, lightMapMatrix, targetSize);
+				if (!light.Bounds.Intersects(bounds)) continue;
+				// Clear the stencil and set the scissor rect (because we're stretching geometry past the light's reach)
+				GraphicsDevice.Clear(ClearOptions.Stencil, Color.Black, 0, 0);
+				GraphicsDevice.ScissorRectangle = ScissorRectCreateForLight(light, lightMapMatrix, targetSize);
 
-					// Draw the light!
-					light.Draw(RenderHelper, hulls);
-				}
+				// Draw the light!
+				light.Draw(RenderHelper, hulls);
 			}
 
-			if (mBluriness > 0) {
+			if (bluriness > 0) {
 				// Blur the shadow map horizontally to the blur target
 				GraphicsDevice.SetRenderTarget(mapBlur);
-				RenderHelper.BlurTextureToTarget(mMap, LightMapSize.Full, BlurTechnique.Horizontal, mBluriness);
+				RenderHelper.BlurTextureToTarget(map, LightMapSize.Full, BlurTechnique.Horizontal, bluriness);
 
 				// Blur the shadow map vertically back to the final map
-				GraphicsDevice.SetRenderTarget(mMap);
-				RenderHelper.BlurTextureToTarget(mapBlur, LightMapSize.Full, BlurTechnique.Vertical, mBluriness);
+				GraphicsDevice.SetRenderTarget(map);
+				RenderHelper.BlurTextureToTarget(mapBlur, LightMapSize.Full, BlurTechnique.Vertical, bluriness);
 			}
 
 			// Reset to the original rendering states
@@ -277,13 +271,13 @@ namespace Krypton {
 
 				// This is the default matrix used to render sprites via spritebatch
 				var matrixSpriteBatch = new Matrix {
-				                                   	M11 = xScale*2f,
-				                                   	M22 = yScale*2f,
-				                                   	M33 = 1f,
-				                                   	M44 = 1f,
-				                                   	M41 = -1f - xScale,
-				                                   	M42 = 1f - yScale,
-				                                   };
+					M11 = xScale * 2f,
+					M22 = yScale * 2f,
+					M33 = 1f,
+					M44 = 1f,
+					M41 = -1f - xScale,
+					M42 = 1f - yScale,
+				};
 
 				// Return krypton's matrix, compensated for use with SpriteBatch
 				return wvp*matrixSpriteBatch;
@@ -353,7 +347,7 @@ namespace Krypton {
 		/// Presents the light map to the current render target
 		/// </summary>
 		void LightMapPresent() {
-			RenderHelper.DrawTextureToTarget(mMap, mLightMapSize, BlendTechnique.Multiply);
+			RenderHelper.DrawTextureToTarget(map, lightMapSize);
 		}
 	}
 }

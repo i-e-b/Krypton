@@ -1,44 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Krypton.Common;
+using Krypton.Lights;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Krypton {
-	public enum BlendTechnique {
-		Add = 1,
-		Multiply = 2,
-	} ;
-
-	public enum BlurTechnique {
-		Horizontal = 1,
-		Vertical = 2,
-	} ;
-
 	public class KryptonRenderHelper {
-		#region Static Unit Quad
-
-		public static readonly VertexPositionTexture[] UnitQuad = new[] {
-		                                                                	new VertexPositionTexture {
-		                                                                	                          	Position = new Vector3(-1, 1, 0),
-		                                                                	                          	TextureCoordinate = new Vector2(0, 0),
-		                                                                	                          },
-		                                                                	new VertexPositionTexture {
-		                                                                	                          	Position = new Vector3(1, 1, 0),
-		                                                                	                          	TextureCoordinate = new Vector2(1, 0),
-		                                                                	                          },
-		                                                                	new VertexPositionTexture {
-		                                                                	                          	Position = new Vector3(-1, -1, 0),
-		                                                                	                          	TextureCoordinate = new Vector2(0, 1),
-		                                                                	                          },
-		                                                                	new VertexPositionTexture {
-		                                                                	                          	Position = new Vector3(1, -1, 0),
-		                                                                	                          	TextureCoordinate = new Vector2(1, 1),
-		                                                                	                          },
-		                                                                };
-
-		#endregion Static Unit Quad
-
 		readonly Effect effect;
 		readonly GraphicsDevice graphicsDevice;
 		readonly List<Int32> shadowHullIndicies = new List<Int32>();
@@ -107,9 +75,9 @@ namespace Krypton {
 				shadowHullVertices.Add(hullVertex); // could this be sped up... ?
 			}
 
-			//// Add the indicies to the buffer
+			// Add the indicies to the buffer
 			foreach (int index in hull.Indicies) {
-				shadowHullIndicies.Add(vertexCount + index); // what about this? Add range?
+				shadowHullIndicies.Add(vertexCount + index);
 			}
 		}
 
@@ -275,7 +243,7 @@ namespace Krypton {
 
 			foreach (EffectPass effectPass in effect.CurrentTechnique.Passes) {
 				effectPass.Apply();
-				graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, UnitQuad, 0, 2);
+				graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, Unit.Quad, 0, 2);
 			}
 		}
 
@@ -310,23 +278,10 @@ namespace Krypton {
 			effect.CurrentTechnique = effect.Techniques["Blur"];
 
 			effect.CurrentTechnique.Passes[passName].Apply();
-			graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, UnitQuad, 0, 2);
+			graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, Unit.Quad, 0, 2);
 		}
 
-		public void DrawTextureToTarget (Texture2D texture, LightMapSize mapSize, BlendTechnique blend) {
-			// Get the technique to use
-			string techniqueName = "";
-
-			switch (blend) {
-				case (BlendTechnique.Add):
-					techniqueName = "TextureToTarget_Add";
-					break;
-
-				case (BlendTechnique.Multiply):
-					techniqueName = "TextureToTarget_Multiply";
-					break;
-			}
-
+		public void DrawTextureToTarget (Texture2D texture, LightMapSize mapSize) {
 			float biasFactor = BiasFactorFromLightMapSize(mapSize);
 
 			// Calculate the texel bias
@@ -337,12 +292,12 @@ namespace Krypton {
 
 			effect.Parameters["Texture0"].SetValue(texture);
 			effect.Parameters["TexelBias"].SetValue(texelBias);
-			effect.CurrentTechnique = effect.Techniques[techniqueName];
+			effect.CurrentTechnique = effect.Techniques["TextureToTarget_Multiply"];
 
 			// Draw the quad
-			foreach (EffectPass effectPass in effect.CurrentTechnique.Passes) {
+			foreach (var effectPass in effect.CurrentTechnique.Passes) {
 				effectPass.Apply();
-				graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, UnitQuad, 0, 2);
+				graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, Unit.Quad, 0, 2);
 			}
 		}
 
@@ -351,7 +306,7 @@ namespace Krypton {
 				case (LightMapSize.Full):
 					return 0.5f;
 
-				case (LightMapSize.Fourth):
+				case (LightMapSize.Quarter):
 					return 0.6f;
 
 				case (LightMapSize.Eighth):

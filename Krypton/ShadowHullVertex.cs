@@ -5,26 +5,17 @@ namespace Krypton
 {
     public struct ShadowHullVertex : IVertexType
     {
-        /// <summary>
-        /// The position of the vertex
-        /// </summary>
+        /// <summary> The position of the vertex</summary>
         public Vector2 Position;
 
-        /// <summary>
-        /// The normal of the vertex
-        /// </summary>
+        /// <summary> The normal of the vertex </summary>
         public Vector2 Normal;
 
-        /// <summary>
-        /// The color of vertex
-        /// </summary>
+        /// <summary> The color of vertex </summary>
         public Color Color;
 
         private static readonly VertexDeclaration VertexDec;
 
-        /// <summary>
-        /// 
-        /// </summary>
         public VertexDeclaration VertexDeclaration { get { return VertexDec; } }
 
         static ShadowHullVertex()
@@ -39,12 +30,6 @@ namespace Krypton
             VertexDec = new VertexDeclaration(elements);
         }
 
-    	/// <summary>
-    	/// 
-    	/// </summary>
-    	/// <param name="position"></param>
-    	/// <param name="normal"></param>
-    	/// <param name="color"></param>
     	public ShadowHullVertex(Vector2 position, Vector2 normal, Color color)
         {
             Position = position;

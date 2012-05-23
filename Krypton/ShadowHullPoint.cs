@@ -18,14 +18,10 @@ namespace Krypton
             Normal = normal;
         }
 
-        /// <summary>
-        /// The position of the point
-        /// </summary>
+        /// <summary> The position of the point </summary>
         public Vector2 Position;
         
-        /// <summary>
-        /// The normal of the side of the shadow hull of which the point helps represent
-        /// </summary>
+        /// <summary> The normal of the side of the shadow hull of which the point helps represent </summary>
         public Vector2 Normal;
     }
 }
