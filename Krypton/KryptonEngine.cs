@@ -72,23 +72,24 @@ namespace Krypton {
 		/// </summary>
 		public Matrix Matrix {
 			get { return wvp; }
-			set {
-				if (wvp == value) return;
-				wvp = value;
+		}
 
-				// This is totally ghetto, but it works for now. :)
-				// Compute the world-space bounds of the given matrix
-				UpdateWorldSpace(value);
-			}
+		public void SetMatrix(Matrix value) {
+			if (wvp == value) return;
+			wvp = value;
+
+			// This is totally ghetto, but it works for now. :)
+			// Compute the world-space bounds of the given matrix
+			UpdateWorldSpace(value);
 		}
 
 		void UpdateWorldSpace(Matrix value) {
-			Matrix inverse = Matrix.Invert(value);
+			var inverse = Matrix.Invert(value);
 
-			Vector2 v1 = Vector2.Transform(new Vector2(1, 1), inverse);
-			Vector2 v2 = Vector2.Transform(new Vector2(1, -1), inverse);
-			Vector2 v3 = Vector2.Transform(new Vector2(-1, -1), inverse);
-			Vector2 v4 = Vector2.Transform(new Vector2(-1, 1), inverse);
+			var v1 = Vector2.Transform(new Vector2(1, 1), inverse);
+			var v2 = Vector2.Transform(new Vector2(1, -1), inverse);
+			var v3 = Vector2.Transform(new Vector2(-1, -1), inverse);
+			var v4 = Vector2.Transform(new Vector2(-1, 1), inverse);
 
 			bounds.Min = v1;
 			bounds.Min = Vector2.Min(bounds.Min, v2);
@@ -124,12 +125,13 @@ namespace Krypton {
 		/// </summary>
 		public LightMapSize LightMapSize {
 			get { return lightMapSize; }
-			set {
-				if (lightMapSize == value) return;
-				lightMapSize = value;
-				DisposeRenderTargets();
-				CreateRenderTargets();
-			}
+		}
+
+		public void SetLightMapSize(LightMapSize value) {
+			if (lightMapSize == value) return;
+			lightMapSize = value;
+			DisposeRenderTargets();
+			CreateRenderTargets();
 		}
 
 		/// <summary>
@@ -312,10 +314,6 @@ namespace Krypton {
 		/// <summary>
 		/// Takes a screen-space vector and puts it in to pixel space
 		/// </summary>
-		/// <param name="v"></param>
-		/// <param name="matrix"></param>
-		/// <param name="targetSize"></param>
-		/// <returns></returns>
 		static Vector2 VectorToPixel(Vector2 v, Matrix matrix, Vector2 targetSize) {
 			Vector2.Transform(ref v, ref matrix, out v);
 

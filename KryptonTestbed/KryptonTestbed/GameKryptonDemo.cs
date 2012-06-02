@@ -187,7 +187,7 @@ namespace KryptonTestbed {
 
 			// Assign the matrix and pre-render the lightmap.
 			// Make sure not to change the position of any lights or shadow hulls after this call, as it won't take effect till the next frame!
-			krypton.Matrix = wvp;
+			krypton.SetMatrix(wvp);
 			krypton.LightMapPrepare();
 
 			// Make sure we clear the backbuffer *after* Krypton is done pre-rendering
